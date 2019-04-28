@@ -1,8 +1,9 @@
 import logging
 import configparser
 import argparse
-from gzlauncher import launcher
-from gzlauncher import defaults
+import launcher
+import defaults
+
 
 class GZConfig:
     def __init__(self, config_file="launcher.cfg"):

@@ -1,6 +1,5 @@
 """
-This module can execute any binary
-executable file and catch it stdout/stderr.
+Async process executor
 
 @author: Igorek536
 @version: 1.0
@@ -11,12 +10,14 @@ import asyncio
 import platform
 import enum
 
+
 class System(enum.Enum):
     Linux64 = 1
     Linux32 = 2
     Windows64 = 3
     Windows32 = 4
     Unsupported = 5
+
 
 def get_os():
     result = System.Unsupported
@@ -41,6 +42,7 @@ async def read_stream(stream, cb):
         else:
             break
 
+
 async def stream_subprocess(cmd, stdout_cb, stderr_cb, env):
     proc = await asyncio.create_subprocess_exec(
         *cmd,
@@ -52,19 +54,23 @@ async def stream_subprocess(cmd, stdout_cb, stderr_cb, env):
         read_stream(proc.stderr, stderr_cb)
     ])
 
+
 def execute(cmd, stdout_cb, stderr_cb, env=None):
     result = -3
     if get_os() is not System.Unsupported:
         if cmd is not None:
             loop = asyncio.get_event_loop()
-            result = loop.run_until_complete(
-                stream_subprocess(cmd, stdout_cb, stderr_cb, env))
-            loop.close()
+            try:
+                result = loop.run_until_complete(
+                    stream_subprocess(cmd, stdout_cb, stderr_cb, env))
+                loop.close()
+            except FileNotFoundError as a:
+                print("OOOOOPS!", a)
         else:
             result = -1
     return result
 
-if __name__ != "__main__":
-    if get_os() is System.Windows64 or get_os() is System.Windows32:
-        asyncio.set_event_loop(asyncio.ProactorEventLoop())
-        asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
+
+if get_os() is System.Windows64 or get_os() is System.Windows32:
+    asyncio.set_event_loop(asyncio.ProactorEventLoop())
+    asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
